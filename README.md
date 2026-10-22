@@ -2,6 +2,9 @@
 
 Интеграция для модулей **ALTOX** (WBUS-5 GPS, GSM-5 и др.), подключённых к собственному прокси **litetox**: это Wialon IPS прокси с MariaDB. Модуль отправляет данные на прокси по GPRS, прокси разбирает и хранит их и зеркалит сессию модуля на **ALTOX SERVER 2.0**, так что официальное приложение ALTOX продолжает работать. Home Assistant забирает данные с прокси по HTTP API.
 
+> [!IMPORTANT]
+> Интеграция работает только вместе с прокси **[litetox](https://github.com/nightrus/litetox)**: модуль ALTOX подключается к нему, а Home Assistant забирает данные с прокси. Сначала разверните прокси (docker compose), потом добавляйте интеграцию.
+
 ![Схема взаимодействия](docs/scheme.png)
 
 <sub>Исходник схемы: [docs/scheme.html](docs/scheme.html) (SVG).</sub>
@@ -21,7 +24,8 @@
   - `litetox.send_command`, который отправляет модулю любую команду из инструкции ALTOX (`STATUS`, `START:30`, `STOP`, `ussd`, `gsminfo`, `READ`…).
 
 ## Установка
-HACS → Custom repositories → `https://github.com/nightrus/ha-litetox` (Integration) → установить → перезапустить HA → «Добавить интеграцию» → **Litetox Proxy**.
+1. Разверните [litetox proxy](https://github.com/nightrus/litetox) и пропишите его адрес в модуле.
+2. HACS → Custom repositories → `https://github.com/nightrus/ha-litetox` (Integration) → установить → перезапустить HA → «Добавить интеграцию» → **Litetox Proxy**.
 
 ## Параметры
 - **Интервал опроса**: по умолчанию 15 с.
@@ -29,7 +33,7 @@ HACS → Custom repositories → `https://github.com/nightrus/ha-litetox` (Integ
 - **Адрес и порт ALTOX SERVER 2.0**: куда прокси зеркалит сессию модуля (по умолчанию `d2.altox.app` : `20332`). Пустой адрес выключает зеркало. Настройка хранится на прокси отдельно для каждого IMEI; состояние видно в диагностическом датчике «Связь с сервером ALTOX».
 
 ## Прокси
-Исходники прокси лежат отдельно (`litetox/server`: Python, aiohttp, PyMySQL, MariaDB, docker compose). API:
+Исходники, установка и переменные окружения прокси: **https://github.com/nightrus/litetox** (Python, aiohttp, PyMySQL, MariaDB, docker compose). Кратко об API:
 
 | Метод | Путь | Назначение |
 |---|---|---|
