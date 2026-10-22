@@ -1,4 +1,4 @@
-"""Binary sensors for Litetox Server."""
+"""Binary sensors for Litetox Proxy."""
 
 from __future__ import annotations
 
@@ -31,6 +31,13 @@ BINARY_SENSORS: tuple[LitetoxBinaryDescription, ...] = (
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
         entity_category=EntityCategory.DIAGNOSTIC,
         value=lambda d: d.get("online"),
+    ),
+    LitetoxBinaryDescription(
+        key="altox",
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        value=lambda d: d.get("altox_connected"),
+        attrs=lambda d: {"upstream": d.get("altox_upstream")},
     ),
     LitetoxBinaryDescription(
         key="heater",

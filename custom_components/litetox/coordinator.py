@@ -1,4 +1,4 @@
-"""Polling coordinator for one tracker on a litetox server."""
+"""Polling coordinator for one tracker on a litetox proxy."""
 
 from __future__ import annotations
 

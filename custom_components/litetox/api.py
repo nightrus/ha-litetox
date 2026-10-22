@@ -1,4 +1,4 @@
-"""Small async client for the litetox server HTTP API."""
+"""Small async client for the litetox proxy HTTP API."""
 
 from __future__ import annotations
 
@@ -57,8 +57,14 @@ class LitetoxClient:
     async def devices(self) -> list[dict[str, Any]]:
         return (await self._req("GET", "/devices"))["devices"]
 
-    async def register(self, imei: str, name: str) -> dict[str, Any]:
-        return await self._req("POST", "/devices", {"imei": imei, "name": name})
+    async def register(
+        self, imei: str, name: str, upstream: str | None = None
+    ) -> dict[str, Any]:
+        """Register/enable the IMEI; upstream "host:port" (or "" = off) sets its ALTOX server."""
+        body = {"imei": imei, "name": name}
+        if upstream is not None:
+            body["upstream"] = upstream
+        return await self._req("POST", "/devices", body)
 
     async def unregister(self, imei: str) -> None:
         await self._req("DELETE", f"/devices/{imei}")

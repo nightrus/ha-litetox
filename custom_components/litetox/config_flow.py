@@ -1,4 +1,4 @@
-"""Config, reconfigure, reauth and options flows for Litetox Server."""
+"""Config, reconfigure, reauth and options flows for Litetox Proxy."""
 
 from __future__ import annotations
 
@@ -28,9 +28,13 @@ from homeassistant.helpers.selector import (
 
 from .api import LitetoxAuthError, LitetoxClient, LitetoxError
 from .const import (
+    CONF_ALTOX_HOST,
+    CONF_ALTOX_PORT,
     CONF_HEATER_MINUTES,
     CONF_IMEI,
     CONF_SCAN_INTERVAL,
+    DEFAULT_ALTOX_HOST,
+    DEFAULT_ALTOX_PORT,
     DEFAULT_HEATER_MINUTES,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
@@ -39,6 +43,7 @@ from .const import (
 )
 
 _IMEI_RE = re.compile(r"^[0-9A-Za-z_-]{4,32}$")
+_HOST_RE = re.compile(r"^[0-9A-Za-z.-]{1,253}$")
 _URL = TextSelector(TextSelectorConfig(type=TextSelectorType.URL))
 _TOKEN = TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD))
 
@@ -164,13 +169,43 @@ class LitetoxConfigFlow(ConfigFlow, domain=DOMAIN):
 
 class LitetoxOptionsFlow(OptionsFlowWithReload):
     async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
+        errors: dict[str, str] = {}
         if user_input is not None:
-            return self.async_create_entry(
-                data={k: int(v) for k, v in user_input.items()}
-            )
-        opts = self.config_entry.options
+            host = (user_input.get(CONF_ALTOX_HOST) or "").strip()
+            port = int(user_input[CONF_ALTOX_PORT])
+            if host and not _HOST_RE.match(host):
+                errors[CONF_ALTOX_HOST] = "invalid_host"
+            else:
+                # the proxy keeps the ALTOX server per IMEI; empty host = mirror off
+                entry = self.config_entry
+                client = LitetoxClient(
+                    async_get_clientsession(self.hass),
+                    entry.data[CONF_URL],
+                    entry.data[CONF_API_TOKEN],
+                )
+                try:
+                    await client.register(
+                        entry.data[CONF_IMEI],
+                        entry.data[CONF_NAME],
+                        f"{host}:{port}" if host else "",
+                    )
+                except LitetoxAuthError:
+                    errors["base"] = "invalid_auth"
+                except LitetoxError:
+                    errors["base"] = "cannot_connect"
+            if not errors:
+                return self.async_create_entry(
+                    data={
+                        CONF_SCAN_INTERVAL: int(user_input[CONF_SCAN_INTERVAL]),
+                        CONF_HEATER_MINUTES: int(user_input[CONF_HEATER_MINUTES]),
+                        CONF_ALTOX_HOST: host,
+                        CONF_ALTOX_PORT: port,
+                    }
+                )
+        opts = {**self.config_entry.options, **(user_input or {})}
         return self.async_show_form(
             step_id="init",
+            errors=errors,
             data_schema=vol.Schema(
                 {
                     vol.Required(
@@ -192,6 +227,20 @@ class LitetoxOptionsFlow(OptionsFlowWithReload):
                         NumberSelectorConfig(
                             min=0, max=120, step=5, unit_of_measurement="min",
                             mode=NumberSelectorMode.BOX,
+                        )
+                    ),
+                    vol.Optional(
+                        CONF_ALTOX_HOST,
+                        description={
+                            "suggested_value": opts.get(CONF_ALTOX_HOST, DEFAULT_ALTOX_HOST)
+                        },
+                    ): str,
+                    vol.Required(
+                        CONF_ALTOX_PORT,
+                        default=opts.get(CONF_ALTOX_PORT, DEFAULT_ALTOX_PORT),
+                    ): NumberSelector(
+                        NumberSelectorConfig(
+                            min=1, max=65535, step=1, mode=NumberSelectorMode.BOX
                         )
                     ),
                 }

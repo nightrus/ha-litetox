@@ -1,4 +1,4 @@
-"""Sensors for Litetox Server."""
+"""Sensors for Litetox Proxy."""
 
 from __future__ import annotations
 

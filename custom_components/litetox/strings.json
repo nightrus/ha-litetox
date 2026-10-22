@@ -2,10 +2,10 @@
   "config": {
     "step": {
       "user": {
-        "title": "Litetox server",
-        "description": "Connect a tracker on your litetox server. The IMEI is registered on the server — logins from any other IMEI are rejected.",
+        "title": "Litetox proxy",
+        "description": "Connect a tracker on your litetox proxy. The IMEI is registered on the proxy — logins from any other IMEI are rejected. The ALTOX SERVER 2.0 address is set in the integration options.",
         "data": {
-          "url": "Server URL",
+          "url": "Proxy URL",
           "api_token": "API token",
           "imei": "Tracker IMEI",
           "name": "Name"
@@ -16,26 +16,26 @@
         }
       },
       "reconfigure": {
-        "title": "Server settings",
+        "title": "Proxy settings",
         "description": "Tracker IMEI: {imei}",
         "data": {
-          "url": "Server URL",
+          "url": "Proxy URL",
           "api_token": "API token"
         }
       },
       "reauth_confirm": {
         "title": "New API token",
-        "description": "Server {url} rejected the token.",
+        "description": "Proxy {url} rejected the token.",
         "data": {
           "api_token": "API token"
         }
       }
     },
     "error": {
-      "cannot_connect": "Cannot connect to the server",
+      "cannot_connect": "Cannot connect to the proxy",
       "invalid_auth": "Invalid API token",
       "invalid_imei": "Invalid IMEI",
-      "register_failed": "Server refused to register the tracker"
+      "register_failed": "Proxy refused to register the tracker"
     },
     "abort": {
       "already_configured": "This tracker is already configured",
@@ -46,15 +46,24 @@
   "options": {
     "step": {
       "init": {
-        "title": "Litetox options",
+        "title": "Litetox proxy options",
         "data": {
           "scan_interval": "Polling interval",
-          "heater_minutes": "Heater run time"
+          "heater_minutes": "Heater run time",
+          "altox_host": "ALTOX SERVER 2.0 host",
+          "altox_port": "ALTOX SERVER 2.0 port"
         },
         "data_description": {
-          "heater_minutes": "Minutes for the heater switch (10–120). 0 — module default (TIME1)."
+          "heater_minutes": "Minutes for the heater switch (10–120). 0 — module default (TIME1).",
+          "altox_host": "The proxy mirrors the module session to this server so the official ALTOX app keeps working. Default d2.altox.app; leave empty to disable the mirror.",
+          "altox_port": "Default 20332"
         }
       }
+    },
+    "error": {
+      "invalid_host": "Invalid host",
+      "invalid_auth": "Invalid API token",
+      "cannot_connect": "Cannot connect to the proxy"
     }
   },
   "entity": {
@@ -123,6 +132,9 @@
       },
       "webasto_error": {
         "name": "Webasto error"
+      },
+      "altox": {
+        "name": "ALTOX server connection"
       }
     },
     "switch": {
@@ -155,7 +167,7 @@
   },
   "exceptions": {
     "device_offline": {
-      "message": "Tracker is not connected to the server"
+      "message": "Tracker is not connected to the proxy"
     },
     "command_failed": {
       "message": "Command failed: {error}"
@@ -170,7 +182,7 @@
   "services": {
     "send_command": {
       "name": "Send command",
-      "description": "Send a raw module command (the cmd_ prefix is added by the server).",
+      "description": "Send a raw module command (the cmd_ prefix is added by the proxy).",
       "fields": {
         "device_id": {
           "name": "Device",

@@ -2,10 +2,10 @@
   "config": {
     "step": {
       "user": {
-        "title": "Сервер litetox",
-        "description": "Подключение трекера на вашем сервере litetox. IMEI регистрируется на сервере — подключения с любым другим IMEI отклоняются.",
+        "title": "Прокси litetox",
+        "description": "Подключение трекера через ваш прокси litetox. IMEI регистрируется на прокси — подключения с любым другим IMEI отклоняются. Адрес ALTOX SERVER 2.0 задаётся в параметрах интеграции.",
         "data": {
-          "url": "Адрес сервера",
+          "url": "Адрес прокси",
           "api_token": "API-токен",
           "imei": "IMEI трекера",
           "name": "Название"
@@ -16,26 +16,26 @@
         }
       },
       "reconfigure": {
-        "title": "Настройки сервера",
+        "title": "Настройки прокси",
         "description": "IMEI трекера: {imei}",
         "data": {
-          "url": "Адрес сервера",
+          "url": "Адрес прокси",
           "api_token": "API-токен"
         }
       },
       "reauth_confirm": {
         "title": "Новый API-токен",
-        "description": "Сервер {url} отклонил токен.",
+        "description": "Прокси {url} отклонил токен.",
         "data": {
           "api_token": "API-токен"
         }
       }
     },
     "error": {
-      "cannot_connect": "Не удаётся подключиться к серверу",
+      "cannot_connect": "Не удаётся подключиться к прокси",
       "invalid_auth": "Неверный API-токен",
       "invalid_imei": "Некорректный IMEI",
-      "register_failed": "Сервер не смог зарегистрировать трекер"
+      "register_failed": "Прокси не смог зарегистрировать трекер"
     },
     "abort": {
       "already_configured": "Этот трекер уже добавлен",
@@ -46,15 +46,24 @@
   "options": {
     "step": {
       "init": {
-        "title": "Параметры Litetox",
+        "title": "Параметры прокси litetox",
         "data": {
           "scan_interval": "Интервал опроса",
-          "heater_minutes": "Время работы отопителя"
+          "heater_minutes": "Время работы отопителя",
+          "altox_host": "Адрес ALTOX SERVER 2.0",
+          "altox_port": "Порт ALTOX SERVER 2.0"
         },
         "data_description": {
-          "heater_minutes": "Минуты для выключателя отопителя (10–120). 0 — по настройке модуля (TIME1)."
+          "heater_minutes": "Минуты для выключателя отопителя (10–120). 0 — по настройке модуля (TIME1).",
+          "altox_host": "Прокси зеркалит сессию модуля на этот сервер, чтобы работало официальное приложение ALTOX. По умолчанию d2.altox.app; пусто — зеркало выключено.",
+          "altox_port": "По умолчанию 20332"
         }
       }
+    },
+    "error": {
+      "invalid_host": "Некорректный адрес",
+      "invalid_auth": "Неверный API-токен",
+      "cannot_connect": "Не удаётся подключиться к прокси"
     }
   },
   "entity": {
@@ -123,6 +132,9 @@
       },
       "webasto_error": {
         "name": "Ошибка Webasto"
+      },
+      "altox": {
+        "name": "Связь с сервером ALTOX"
       }
     },
     "switch": {
@@ -155,7 +167,7 @@
   },
   "exceptions": {
     "device_offline": {
-      "message": "Трекер не на связи с сервером"
+      "message": "Трекер не на связи с прокси"
     },
     "command_failed": {
       "message": "Не удалось отправить команду: {error}"
@@ -170,7 +182,7 @@
   "services": {
     "send_command": {
       "name": "Отправить команду",
-      "description": "Отправить модулю произвольную команду (префикс cmd_ добавит сервер).",
+      "description": "Отправить модулю произвольную команду (префикс cmd_ добавит прокси).",
       "fields": {
         "device_id": {
           "name": "Устройство",

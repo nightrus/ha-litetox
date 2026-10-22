@@ -1,4 +1,4 @@
-"""Litetox Server — ALTOX heater/tracker via own Wialon IPS server."""
+"""Litetox Proxy — ALTOX heater/tracker via own Wialon IPS proxy (mirrored to ALTOX SERVER 2.0)."""
 
 from __future__ import annotations
 

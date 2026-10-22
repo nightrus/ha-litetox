@@ -1,4 +1,4 @@
-"""Base entity for Litetox Server."""
+"""Base entity for Litetox Proxy."""
 
 from __future__ import annotations
 
