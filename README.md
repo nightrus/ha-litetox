@@ -2,11 +2,9 @@
 
 Интеграция для модулей **ALTOX** (WBUS-5 GPS, GSM-5 и др.), подключённых к собственному прокси **litetox**: это Wialon IPS прокси с MariaDB. Модуль отправляет данные на прокси по GPRS, прокси разбирает и хранит их и зеркалит сессию модуля на **ALTOX SERVER 2.0**, так что официальное приложение ALTOX продолжает работать. Home Assistant забирает данные с прокси по HTTP API.
 
-```
-ALTOX ──Wialon IPS/TCP──▶ litetox proxy (+MariaDB) ──▶ ALTOX SERVER 2.0 (d2.altox.app:20332)
-                                 ▲
-                                 └──HTTPS (опрос)── Home Assistant
-```
+![Схема взаимодействия](docs/scheme.png)
+
+<sub>Исходник схемы: [docs/scheme.html](docs/scheme.html) (SVG).</sub>
 
 ## Возможности
 - Настройка через UI: адрес прокси, API-токен, IMEI трекера и название.

@@ -1,0 +1,115 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>
+  html,body{margin:0;background:#f6f7f9}
+  svg{display:block;font-family:"DejaVu Sans","Noto Sans",sans-serif}
+  .box{fill:#fff;stroke:#c9ced6;stroke-width:1.5}
+  .t{font-size:20px;font-weight:700;fill:#1d2430}
+  .s{font-size:14px;fill:#4a5361}
+  .m{font-size:13px;fill:#4a5361;font-family:"DejaVu Sans Mono",monospace}
+  .lbl{font-size:13.5px;fill:#1d2430}
+  .lbls{font-size:12.5px;fill:#5f6876}
+  .altox{stroke:#d9822b}
+  .own{stroke:#2f7fd6}
+  .cmd{stroke:#7a52c7}
+</style></head><body>
+<svg width="1400" height="760" viewBox="0 0 1400 760" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <marker id="ao" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#d9822b"/></marker>
+    <marker id="bo" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f7fd6"/></marker>
+  </defs>
+
+  <text x="40" y="48" style="font-size:26px;font-weight:700;fill:#1d2430">Схема взаимодействия: ALTOX ⇄ litetox proxy ⇄ модуль</text>
+  <text x="40" y="74" class="s">Модуль подключается только к прокси. Прокси держит зеркальную сессию с ALTOX SERVER 2.0, поэтому официальное приложение работает как раньше.</text>
+
+  <!-- zones -->
+  <rect x="270" y="100" width="1100" height="190" rx="14" fill="#fdf3e8" stroke="#f0d3b0" stroke-dasharray="6 5"/>
+  <text x="290" y="124" style="font-size:13px;font-weight:700;fill:#b86a1d">ОФИЦИАЛЬНАЯ ИНФРАСТРУКТУРА ALTOX</text>
+  <rect x="270" y="320" width="1100" height="410" rx="14" fill="#ecf3fc" stroke="#bcd5f2" stroke-dasharray="6 5"/>
+  <text x="290" y="344" style="font-size:13px;font-weight:700;fill:#2563a8">СВОЯ ИНФРАСТРУКТУРА</text>
+
+  <!-- User -->
+  <rect class="box" x="40" y="330" width="190" height="130" rx="12"/>
+  <circle cx="135" cy="368" r="16" fill="none" stroke="#1d2430" stroke-width="2.5"/>
+  <path d="M105,412 q30,-34 60,0" fill="none" stroke="#1d2430" stroke-width="2.5"/>
+  <text x="135" y="440" text-anchor="middle" class="t">Пользователь</text>
+
+  <!-- ALTOX app -->
+  <rect class="box" x="330" y="145" width="250" height="120" rx="12"/>
+  <text x="455" y="185" text-anchor="middle" class="t">Приложение</text>
+  <text x="455" y="210" text-anchor="middle" class="t">ALTOX App</text>
+  <text x="455" y="238" text-anchor="middle" class="m">altox.app (PWA)</text>
+
+  <!-- ALTOX server -->
+  <rect class="box" x="760" y="145" width="290" height="120" rx="12" style="stroke:#d9822b;stroke-width:2"/>
+  <text x="905" y="185" text-anchor="middle" class="t">ALTOX SERVER 2.0</text>
+  <text x="905" y="212" text-anchor="middle" class="m">d2.altox.app:20332</text>
+  <text x="905" y="236" text-anchor="middle" class="s">адрес/порт задаётся в HA</text>
+
+  <!-- Proxy -->
+  <rect class="box" x="760" y="400" width="290" height="190" rx="12" style="stroke:#2f7fd6;stroke-width:2.5"/>
+  <text x="905" y="438" text-anchor="middle" class="t">litetox proxy</text>
+  <text x="905" y="462" text-anchor="middle" class="s">свой VPS, Docker</text>
+  <text x="905" y="488" text-anchor="middle" class="m">TCP :20013 (Wialon IPS)</text>
+  <text x="905" y="508" text-anchor="middle" class="m">HTTP API :20080</text>
+  <line x1="790" y1="524" x2="1020" y2="524" stroke="#e1e5ea"/>
+  <text x="905" y="546" text-anchor="middle" class="s">MariaDB: состояние, история,</text>
+  <text x="905" y="566" text-anchor="middle" class="s">команды, журнал кадров</text>
+
+  <!-- Device -->
+  <rect class="box" x="1160" y="400" width="190" height="190" rx="12"/>
+  <rect x="1225" y="425" width="60" height="40" rx="6" fill="none" stroke="#1d2430" stroke-width="2.5"/>
+  <line x1="1270" y1="425" x2="1278" y2="408" stroke="#1d2430" stroke-width="2.5"/>
+  <text x="1255" y="498" text-anchor="middle" class="t">Модуль ALTOX</text>
+  <text x="1255" y="522" text-anchor="middle" class="s">GSM-5 / WBUS-5</text>
+  <text x="1255" y="546" text-anchor="middle" class="s">→ отопитель Webasto</text>
+  <text x="1255" y="572" text-anchor="middle" class="m">IMEI •••••••••••••••</text>
+
+  <!-- Home Assistant -->
+  <rect class="box" x="330" y="570" width="250" height="130" rx="12"/>
+  <text x="455" y="612" text-anchor="middle" class="t">Home Assistant</text>
+  <text x="455" y="638" text-anchor="middle" class="s">интеграция Litetox Proxy</text>
+  <text x="455" y="664" text-anchor="middle" class="s">датчики, отопитель,</text>
+  <text x="455" y="684" text-anchor="middle" class="s">кнопки, сервисы</text>
+
+  <!-- arrows: user -> app -->
+  <path d="M230,370 C270,370 280,205 326,205" fill="none" class="altox" stroke-width="2.5" marker-end="url(#ao)"/>
+  <!-- app <-> server -->
+  <line x1="584" y1="205" x2="756" y2="205" class="altox" stroke-width="2.5" marker-start="url(#ao)" marker-end="url(#ao)"/>
+  <text x="670" y="193" text-anchor="middle" class="lbl">WebSocket (шифр.)</text>
+  <text x="670" y="226" text-anchor="middle" class="lbls">s1–s3.altox.app</text>
+
+  <!-- server <-> proxy -->
+  <line x1="905" y1="269" x2="905" y2="396" class="altox" stroke-width="2.5" marker-start="url(#ao)" marker-end="url(#ao)"/>
+  <text x="920" y="340" class="lbl">Wialon IPS, зеркало сессии</text>
+  <text x="920" y="358" class="lbls">прокси сам подключается к ALTOX;</text>
+  <text x="920" y="374" class="lbls">вниз: команды из приложения</text>
+  <text x="920" y="390" class="lbls">вверх: копия всех кадров модуля</text>
+
+  <!-- proxy <-> device -->
+  <line x1="1054" y1="495" x2="1156" y2="495" class="own" stroke-width="2.5" marker-start="url(#bo)" marker-end="url(#bo)"/>
+  <text x="1105" y="468" text-anchor="middle" class="lbl">GPRS</text>
+  <text x="1105" y="484" text-anchor="middle" class="lbls">Wialon IPS</text>
+  <text x="1105" y="520" text-anchor="middle" class="lbls">модуль сам</text>
+  <text x="1105" y="536" text-anchor="middle" class="lbls">подключается</text>
+
+  <!-- user -> HA -->
+  <path d="M230,420 C270,420 280,635 326,635" fill="none" class="own" stroke-width="2.5" marker-end="url(#bo)"/>
+  <!-- HA <-> proxy -->
+  <path d="M584,635 C680,635 680,540 756,540" fill="none" class="own" stroke-width="2.5" marker-start="url(#bo)" marker-end="url(#bo)"/>
+  <text x="600" y="690" class="lbl">HTTPS API + Bearer-токен</text>
+  <text x="600" y="708" class="lbls">ваш домен (reverse proxy) → :20080</text>
+
+  <!-- user -> proxy direct -->
+  <path d="M230,395 C420,395 560,470 756,470" fill="none" class="own" stroke-width="2.5" stroke-dasharray="7 6" marker-end="url(#bo)"/>
+  <text x="380" y="492" class="lbl">напрямую: curl / скрипты</text>
+  <text x="380" y="510" class="lbls">тот же HTTP API</text>
+
+  <!-- legend -->
+  <g transform="translate(40,500)">
+    <line x1="0" y1="10" x2="40" y2="10" class="altox" stroke-width="2.5"/><text x="48" y="15" class="lbls">каналы ALTOX</text>
+    <line x1="0" y1="36" x2="40" y2="36" class="own" stroke-width="2.5"/><text x="48" y="41" class="lbls">свои каналы</text>
+    <line x1="0" y1="62" x2="40" y2="62" class="own" stroke-width="2.5" stroke-dasharray="7 6"/><text x="48" y="67" class="lbls">прямой доступ</text>
+  </g>
+</svg>
+</body></html>
