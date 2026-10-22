@@ -1,0 +1,25 @@
+send_command:
+  fields:
+    device_id:
+      selector:
+        device:
+          integration: litetox
+    command:
+      required: true
+      example: STATUS
+      selector:
+        text:
+
+start_heater:
+  fields:
+    device_id:
+      selector:
+        device:
+          integration: litetox
+    minutes:
+      selector:
+        number:
+          min: 10
+          max: 120
+          step: 5
+          unit_of_measurement: min

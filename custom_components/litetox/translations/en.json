@@ -1,0 +1,194 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Litetox server",
+        "description": "Connect a tracker on your litetox server. The IMEI is registered on the server — logins from any other IMEI are rejected.",
+        "data": {
+          "url": "Server URL",
+          "api_token": "API token",
+          "imei": "Tracker IMEI",
+          "name": "Name"
+        },
+        "data_description": {
+          "url": "For example https://traccar.example.com",
+          "imei": "Module ID (SMS ID1 / SETTINGS2)"
+        }
+      },
+      "reconfigure": {
+        "title": "Server settings",
+        "description": "Tracker IMEI: {imei}",
+        "data": {
+          "url": "Server URL",
+          "api_token": "API token"
+        }
+      },
+      "reauth_confirm": {
+        "title": "New API token",
+        "description": "Server {url} rejected the token.",
+        "data": {
+          "api_token": "API token"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to the server",
+      "invalid_auth": "Invalid API token",
+      "invalid_imei": "Invalid IMEI",
+      "register_failed": "Server refused to register the tracker"
+    },
+    "abort": {
+      "already_configured": "This tracker is already configured",
+      "reconfigure_successful": "Settings updated",
+      "reauth_successful": "Token updated"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Litetox options",
+        "data": {
+          "scan_interval": "Polling interval",
+          "heater_minutes": "Heater run time"
+        },
+        "data_description": {
+          "heater_minutes": "Minutes for the heater switch (10–120). 0 — module default (TIME1)."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "voltage": {
+        "name": "Voltage"
+      },
+      "cabin_temp": {
+        "name": "Cabin temperature"
+      },
+      "heater_temp": {
+        "name": "Heater temperature"
+      },
+      "heater_minutes": {
+        "name": "Heater time left"
+      },
+      "balance": {
+        "name": "SIM balance"
+      },
+      "speed": {
+        "name": "Speed"
+      },
+      "odometer_km": {
+        "name": "Odometer"
+      },
+      "gsm": {
+        "name": "GSM signal"
+      },
+      "satellites": {
+        "name": "Satellites"
+      },
+      "hdop": {
+        "name": "HDOP"
+      },
+      "altitude": {
+        "name": "Altitude"
+      },
+      "gsm_cell": {
+        "name": "GSM cell"
+      },
+      "firmware": {
+        "name": "Firmware"
+      },
+      "last_seen": {
+        "name": "Last seen"
+      },
+      "position_ts": {
+        "name": "Position time"
+      },
+      "heater_ts": {
+        "name": "Heater status time"
+      }
+    },
+    "binary_sensor": {
+      "online": {
+        "name": "Connection"
+      },
+      "heater": {
+        "name": "Heater"
+      },
+      "flame": {
+        "name": "Flame"
+      },
+      "moving": {
+        "name": "Moving"
+      }
+    },
+    "switch": {
+      "heater_switch": {
+        "name": "Heater"
+      },
+      "output": {
+        "name": "Output OUT"
+      }
+    },
+    "button": {
+      "request_status": {
+        "name": "Request status"
+      },
+      "request_balance": {
+        "name": "Request balance"
+      },
+      "request_cells": {
+        "name": "Request GSM cells"
+      }
+    },
+    "device_tracker": {
+      "location": {
+        "name": "Location"
+      }
+    }
+  },
+  "exceptions": {
+    "device_offline": {
+      "message": "Tracker is not connected to the server"
+    },
+    "command_failed": {
+      "message": "Command failed: {error}"
+    },
+    "device_required": {
+      "message": "Several trackers are configured — choose a device"
+    },
+    "device_unknown": {
+      "message": "This device does not belong to Litetox"
+    }
+  },
+  "services": {
+    "send_command": {
+      "name": "Send command",
+      "description": "Send a raw module command (the cmd_ prefix is added by the server).",
+      "fields": {
+        "device_id": {
+          "name": "Device",
+          "description": "Tracker (can be omitted if only one is configured)"
+        },
+        "command": {
+          "name": "Command",
+          "description": "E.g. STATUS, START:30, STOP, ussd, gsminfo, ACTIVATE"
+        }
+      }
+    },
+    "start_heater": {
+      "name": "Start heater",
+      "description": "Start the heater for the given time.",
+      "fields": {
+        "device_id": {
+          "name": "Device",
+          "description": "Tracker (can be omitted if only one is configured)"
+        },
+        "minutes": {
+          "name": "Minutes",
+          "description": "10–120; empty — module default (TIME1)"
+        }
+      }
+    }
+  }
+}

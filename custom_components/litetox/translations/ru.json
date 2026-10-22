@@ -1,0 +1,194 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Сервер litetox",
+        "description": "Подключение трекера на вашем сервере litetox. IMEI регистрируется на сервере — подключения с любым другим IMEI отклоняются.",
+        "data": {
+          "url": "Адрес сервера",
+          "api_token": "API-токен",
+          "imei": "IMEI трекера",
+          "name": "Название"
+        },
+        "data_description": {
+          "url": "Например https://traccar.example.com",
+          "imei": "ID модуля (SMS ID1 / SETTINGS2)"
+        }
+      },
+      "reconfigure": {
+        "title": "Настройки сервера",
+        "description": "IMEI трекера: {imei}",
+        "data": {
+          "url": "Адрес сервера",
+          "api_token": "API-токен"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Новый API-токен",
+        "description": "Сервер {url} отклонил токен.",
+        "data": {
+          "api_token": "API-токен"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Не удаётся подключиться к серверу",
+      "invalid_auth": "Неверный API-токен",
+      "invalid_imei": "Некорректный IMEI",
+      "register_failed": "Сервер не смог зарегистрировать трекер"
+    },
+    "abort": {
+      "already_configured": "Этот трекер уже добавлен",
+      "reconfigure_successful": "Настройки обновлены",
+      "reauth_successful": "Токен обновлён"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Параметры Litetox",
+        "data": {
+          "scan_interval": "Интервал опроса",
+          "heater_minutes": "Время работы отопителя"
+        },
+        "data_description": {
+          "heater_minutes": "Минуты для выключателя отопителя (10–120). 0 — по настройке модуля (TIME1)."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "voltage": {
+        "name": "Напряжение"
+      },
+      "cabin_temp": {
+        "name": "Температура салона"
+      },
+      "heater_temp": {
+        "name": "Температура отопителя"
+      },
+      "heater_minutes": {
+        "name": "Отопитель: осталось"
+      },
+      "balance": {
+        "name": "Баланс SIM"
+      },
+      "speed": {
+        "name": "Скорость"
+      },
+      "odometer_km": {
+        "name": "Пробег"
+      },
+      "gsm": {
+        "name": "Сигнал GSM"
+      },
+      "satellites": {
+        "name": "Спутники"
+      },
+      "hdop": {
+        "name": "HDOP"
+      },
+      "altitude": {
+        "name": "Высота"
+      },
+      "gsm_cell": {
+        "name": "Сота GSM"
+      },
+      "firmware": {
+        "name": "Прошивка"
+      },
+      "last_seen": {
+        "name": "Последняя связь"
+      },
+      "position_ts": {
+        "name": "Время позиции"
+      },
+      "heater_ts": {
+        "name": "Время статуса отопителя"
+      }
+    },
+    "binary_sensor": {
+      "online": {
+        "name": "Связь"
+      },
+      "heater": {
+        "name": "Отопитель"
+      },
+      "flame": {
+        "name": "Пламя"
+      },
+      "moving": {
+        "name": "Движение"
+      }
+    },
+    "switch": {
+      "heater_switch": {
+        "name": "Отопитель"
+      },
+      "output": {
+        "name": "Выход OUT"
+      }
+    },
+    "button": {
+      "request_status": {
+        "name": "Запросить статус"
+      },
+      "request_balance": {
+        "name": "Запросить баланс"
+      },
+      "request_cells": {
+        "name": "Запросить соты GSM"
+      }
+    },
+    "device_tracker": {
+      "location": {
+        "name": "Местоположение"
+      }
+    }
+  },
+  "exceptions": {
+    "device_offline": {
+      "message": "Трекер не на связи с сервером"
+    },
+    "command_failed": {
+      "message": "Не удалось отправить команду: {error}"
+    },
+    "device_required": {
+      "message": "Добавлено несколько трекеров — укажите устройство"
+    },
+    "device_unknown": {
+      "message": "Это устройство не относится к Litetox"
+    }
+  },
+  "services": {
+    "send_command": {
+      "name": "Отправить команду",
+      "description": "Отправить модулю произвольную команду (префикс cmd_ добавит сервер).",
+      "fields": {
+        "device_id": {
+          "name": "Устройство",
+          "description": "Трекер (можно не указывать, если он один)"
+        },
+        "command": {
+          "name": "Команда",
+          "description": "Например STATUS, START:30, STOP, ussd, gsminfo, ACTIVATE"
+        }
+      }
+    },
+    "start_heater": {
+      "name": "Включить отопитель",
+      "description": "Включить отопитель на заданное время.",
+      "fields": {
+        "device_id": {
+          "name": "Устройство",
+          "description": "Трекер (можно не указывать, если он один)"
+        },
+        "minutes": {
+          "name": "Минуты",
+          "description": "10–120; пусто — по настройке модуля (TIME1)"
+        }
+      }
+    }
+  }
+}
