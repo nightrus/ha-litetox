@@ -1,4 +1,4 @@
-"""Request buttons: status, balance, GSM cells."""
+"""Request buttons: status, balance, Webasto diagnostics, GSM cells."""
 
 from __future__ import annotations
 
@@ -20,6 +20,7 @@ class LitetoxButtonDescription(ButtonEntityDescription):
 BUTTONS: tuple[LitetoxButtonDescription, ...] = (
     LitetoxButtonDescription(key="request_status", command="STATUS", icon="mdi:refresh"),
     LitetoxButtonDescription(key="request_balance", command="ussd", icon="mdi:cash-sync"),
+    LitetoxButtonDescription(key="request_diag", command="READ", icon="mdi:car-wrench"),
     LitetoxButtonDescription(
         key="request_cells", command="gsminfo", icon="mdi:radio-tower",
         entity_registry_enabled_default=False,

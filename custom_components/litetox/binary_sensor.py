@@ -22,6 +22,7 @@ from .entity import LitetoxEntity
 @dataclass(frozen=True, kw_only=True)
 class LitetoxBinaryDescription(BinarySensorEntityDescription):
     value: Callable[[dict[str, Any]], bool | None]
+    attrs: Callable[[dict[str, Any]], dict[str, Any]] | None = None
 
 
 BINARY_SENSORS: tuple[LitetoxBinaryDescription, ...] = (
@@ -46,6 +47,14 @@ BINARY_SENSORS: tuple[LitetoxBinaryDescription, ...] = (
         device_class=BinarySensorDeviceClass.MOVING,
         value=lambda d: d.get("moving"),
     ),
+    LitetoxBinaryDescription(
+        key="webasto_error",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        # unknown until the first cmd_READ reply; the server asks hourly
+        value=lambda d: bool(d.get("webasto_error")) if d.get("webasto_diag_ts") else None,
+        attrs=lambda d: {"error_code": d.get("webasto_error"), "report": d.get("webasto_diag_raw"),
+                         "updated": d.get("webasto_diag_ts")},
+    ),
 )
 
 
@@ -67,3 +76,8 @@ class LitetoxBinarySensor(LitetoxEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool | None:
         return self.entity_description.value(self.d)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any] | None:
+        desc = self.entity_description
+        return desc.attrs(self.d) if desc.attrs else None
