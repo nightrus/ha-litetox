@@ -1,6 +1,6 @@
 /* Litetox card — bundled with the litetox integration (ALTOX heater/tracker). */
 
-const CARD_VERSION = "1.0.1";
+const CARD_VERSION = "1.0.2";
 const PLATFORM = "litetox";
 // role -> [domain, translation_key] of this integration's entities
 const ROLES = {
@@ -17,6 +17,8 @@ const ROLES = {
   gsm: ["sensor", "gsm"],
   cell: ["sensor", "gsm_cell"],
   lastSeen: ["sensor", "last_seen"],
+  satellites: ["sensor", "satellites"],
+  odometer: ["sensor", "odometer_km"],
   statusTs: ["sensor", "heater_ts"],
   heaterSwitch: ["switch", "heater_switch"],
   output: ["switch", "output"],
@@ -185,6 +187,11 @@ const STYLE = `
   .run[disabled] { cursor: default; }
   .busy .run ha-icon { animation: spin 1s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
+  .info { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-top: 8px; }
+  .info .cmd { flex-direction: row; align-items: center; gap: 10px; padding: 8px 12px; }
+  .info .cmd > ha-icon { --mdc-icon-size: 26px; color: var(--c); }
+  .info .cmd .t { display: flex; flex-direction: column; min-width: 0; }
+  .info .cmd .t span { font-size: 12.5px; color: var(--secondary-text-color); }
   .foot {
     display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; margin-top: 12px; padding-top: 10px;
     border-top: 1px solid var(--divider-color); font-size: 13px; color: var(--secondary-text-color);
@@ -428,6 +435,20 @@ const createCardClass = (Base) => class LitetoxCard extends Base {
         outOn ? "включён" : "выключен", "нажмите ▶ для переключения", outOn ? GREEN : GREY) : "",
     ].filter(Boolean).join("");
 
+    const sat = num(s("satellites"));
+    const odo = num(s("odometer"));
+    const infoTile = (role, icon, title, value, color) => s(role) ? `
+      <div class="cmd" style="--c:${color}" data-act="more" data-entity="${esc(c[role])}">
+        <ha-icon icon="${icon}"></ha-icon>
+        <div class="t"><span>${title}</span><div class="v">${value}</div></div>
+      </div>` : "";
+    const info = [
+      infoTile("satellites", sat ? "mdi:satellite-variant" : "mdi:crosshairs-off", "Спутники GPS",
+        sat === null ? "—" : `${sat}<small> ${sat >= 6 ? "· точно" : sat >= 3 ? "· слабо" : "· нет фикса"}</small>`,
+        sat === null ? GREY : sat >= 6 ? GREEN : sat >= 3 ? YELLOW : RED),
+      infoTile("odometer", "mdi:counter", "Пробег", `${fmt(odo, 1)}<small> км</small>`, BLUE),
+    ].join("");
+
     const foot = [
       s("lastSeen") ? `<span data-act="more" data-entity="${esc(c.lastSeen)}"><ha-icon icon="mdi:clock-outline"></ha-icon>связь ${ago(s("lastSeen").state)}</span>` : "",
       altox ? `<span data-act="more" data-entity="${esc(c.altox)}" style="color:${altox.state === "on" ? "inherit" : RED}">
@@ -443,6 +464,7 @@ const createCardClass = (Base) => class LitetoxCard extends Base {
           ${car}
           <div class="cmds">${heat}<div class="grid">${cmds}</div></div>
         </div>
+        ${info ? `<div class="info">${info}</div>` : ""}
         ${foot ? `<div class="foot">${foot}</div>` : ""}
       </ha-card>`;
   }
