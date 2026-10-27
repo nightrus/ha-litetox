@@ -1,6 +1,6 @@
 /* Litetox card — bundled with the litetox integration (ALTOX heater/tracker). */
 
-const CARD_VERSION = "1.0.0";
+const CARD_VERSION = "1.0.1";
 const PLATFORM = "litetox";
 // role -> [domain, translation_key] of this integration's entities
 const ROLES = {
@@ -194,7 +194,7 @@ const STYLE = `
   .warn { padding: 8px; color: var(--error-color, #f44336); }
 `;
 
-const GREEN = "#66bb6a", RED = "#f44336", ORANGE = "#ff9800", BLUE = "#42a5f5", GREY = "#9e9e9e", AMBER = "#ffb300";
+const GREEN = "#66bb6a", RED = "#f44336", ORANGE = "#ff9800", YELLOW = "#fdd835", BLUE = "#42a5f5", GREY = "#9e9e9e", AMBER = "#ffb300";
 
 const createCardClass = (Base) => class LitetoxCard extends Base {
   setConfig(config) {
@@ -354,9 +354,12 @@ const createCardClass = (Base) => class LitetoxCard extends Base {
 
     // pills on the car
     const v = num(s("voltage"));
-    const vColor = v === null ? GREY : v < 11.8 ? RED : v < 12.3 ? ORANGE : GREEN;
+    // 12 V lead-acid at rest: ≥12.4 charged, 12.1–12.4 half, 11.8–12.1 low, <11.8 flat; >13.2 = charging
+    const [vColor, vGrade] = v === null ? [GREY, ""] : v >= 13.2 ? [BLUE, "заряжается"]
+      : v >= 12.4 ? [GREEN, "заряжен"] : v >= 12.1 ? [YELLOW, "заряд ~50%"]
+      : v >= 11.8 ? [ORANGE, "разряжен"] : [RED, "сильно разряжен"];
     const bal = num(s("balance"));
-    const balColor = bal === null ? GREY : bal < 50 ? RED : bal < 100 ? ORANGE : GREEN;
+    const balColor = bal === null ? GREY : bal < 100 ? YELLOW : GREEN;
     const gsm = num(s("gsm"));
     const gsmColor = gsm === null ? GREY : gsm < 10 ? RED : gsm < 18 ? ORANGE : GREEN;
     const gsmIcon = gsm === null ? "mdi:signal-off" : gsm < 10 ? "mdi:signal-cellular-1"
@@ -413,7 +416,7 @@ const createCardClass = (Base) => class LitetoxCard extends Base {
 
     const cmds = [
       this._cmd("status", c.btnStatus, c.statusTs || c.btnStatus, "mdi:refresh", "Статус",
-        `${fmt(v, 1)}<small> В</small> · ${fmt(ht)}<small> °C</small>`, `обновлён ${ago(stTs)}`, BLUE),
+        `${fmt(v, 1)}<small> В${vGrade ? " · " + vGrade : ""}</small>`, `обновлён ${ago(stTs)}`, vColor),
       this._cmd("balance", c.btnBalance, c.balance || c.btnBalance, "mdi:cash-sync", "Баланс SIM",
         `${fmt(bal, 2)}<small> ₽</small>`, `запрошен ${ago(balSt?.attributes?.updated)}`, balColor),
       this._cmd("diag", c.btnDiag, c.webasto || c.btnDiag, "mdi:car-wrench", "Диагностика Webasto",
