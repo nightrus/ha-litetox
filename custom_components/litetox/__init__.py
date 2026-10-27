@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 
 import voluptuous as vol
 
+from homeassistant.components.frontend import add_extra_js_url
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.const import CONF_API_TOKEN, CONF_URL, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import ServiceValidationError
@@ -18,10 +21,12 @@ from .const import (
     ATTR_COMMAND,
     ATTR_DEVICE_ID,
     ATTR_MINUTES,
+    CARD_URL,
     CONF_IMEI,
     DOMAIN,
     SERVICE_SEND_COMMAND,
     SERVICE_START_HEATER,
+    VERSION,
 )
 from .coordinator import LitetoxConfigEntry, LitetoxCoordinator
 
@@ -75,6 +80,13 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
 
     hass.services.async_register(DOMAIN, SERVICE_SEND_COMMAND, send_command, _SEND_SCHEMA)
     hass.services.async_register(DOMAIN, SERVICE_START_HEATER, start_heater, _START_SCHEMA)
+
+    # serve the bundled Lovelace card so no manual resource is needed
+    card = Path(__file__).parent / "frontend" / "litetox-card.js"
+    await hass.http.async_register_static_paths(
+        [StaticPathConfig(CARD_URL, str(card), cache_headers=False)]
+    )
+    add_extra_js_url(hass, f"{CARD_URL}?v={VERSION}")
     return True
 
 
