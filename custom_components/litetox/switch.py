@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import time
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
@@ -40,14 +39,10 @@ class HeaterSwitch(LitetoxEntity, SwitchEntity):
         minutes = self.coordinator.config_entry.options.get(
             CONF_HEATER_MINUTES, DEFAULT_HEATER_MINUTES
         )
-        await self.coordinator.async_send(f"START:{minutes}" if minutes else "START")
-        self.coordinator.heater_pending = (True, time.monotonic())
-        self.async_write_ha_state()
+        await self.coordinator.async_heater(True, minutes)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
-        await self.coordinator.async_send("STOP")
-        self.coordinator.heater_pending = (False, time.monotonic())
-        self.async_write_ha_state()
+        await self.coordinator.async_heater(False)
 
 
 class OutputSwitch(LitetoxEntity, SwitchEntity):

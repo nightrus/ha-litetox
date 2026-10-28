@@ -74,9 +74,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
         await _coordinator(hass, call).async_send(call.data[ATTR_COMMAND])
 
     async def start_heater(call: ServiceCall) -> None:
-        coord = _coordinator(hass, call)
-        minutes = call.data.get(ATTR_MINUTES)
-        await coord.async_send(f"START:{minutes}" if minutes else "START")
+        await _coordinator(hass, call).async_heater(True, call.data.get(ATTR_MINUTES))
 
     hass.services.async_register(DOMAIN, SERVICE_SEND_COMMAND, send_command, _SEND_SCHEMA)
     hass.services.async_register(DOMAIN, SERVICE_START_HEATER, start_heater, _START_SCHEMA)

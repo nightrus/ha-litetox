@@ -1,6 +1,6 @@
 /* Litetox card — bundled with the litetox integration (ALTOX heater/tracker). */
 
-const CARD_VERSION = "1.0.5";
+const CARD_VERSION = "1.0.6";
 const PLATFORM = "litetox";
 // role -> [domain, translation_key] of this integration's entities
 const ROLES = {
@@ -27,6 +27,7 @@ const ROLES = {
   btnDiag: ["button", "request_diag"],
   btnCells: ["button", "request_cells"],
 };
+const DURATIONS = [10, 20, 30, 45, 60]; // START:N, the service accepts 10–120 min
 const PENDING_MS = 90000; // the module answers in 5–40 s; give up after the server's timeout
 
 // Entities come from the registry, so renamed entity_ids keep working.
@@ -165,6 +166,15 @@ const STYLE = `
   .go ha-icon { --mdc-icon-size: 18px; }
   .go.armed { animation: blink .5s steps(1) infinite; }
   .go[disabled] { opacity: .55; cursor: default; }
+  .dur { grid-column: 1 / -1; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .dur > ha-icon { --mdc-icon-size: 20px; color: var(--c); }
+  .dur button {
+    flex: 1 1 0; min-width: 0; white-space: nowrap;
+    font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; padding: 5px 8px; border-radius: 10px;
+    color: var(--primary-text-color); background: color-mix(in srgb, var(--c) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--c) 35%, transparent);
+  }
+  .dur button.sel { color: #fff; background: var(--c); border-color: var(--c); }
   @keyframes blink { 50% { filter: brightness(1.35); } }
   .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
   .cmd {
@@ -296,9 +306,15 @@ const createCardClass = (Base) => class LitetoxCard extends Base {
     const { act, entity, cmd } = el.dataset;
     if (act === "more") return this._more(entity);
     if (act === "run") return this._press(cmd);
+    if (act === "dur") {
+      this._minutes = Number(el.dataset.min);
+      try { localStorage.setItem(this._minKey(), String(this._minutes)); } catch (_) { /* private mode */ }
+      return this._render();
+    }
     if (act === "heat") {
-      // starting/stopping a fuel heater deserves a second tap
-      if (!this._armed) {
+      const on = this._st("heaterSwitch")?.state === "on";
+      // starting a fuel heater deserves a second tap; stopping never does
+      if (!on && !this._armed) {
         this._armed = true;
         clearTimeout(this._armTimer);
         this._armTimer = setTimeout(() => { this._armed = false; this._render(); }, 4000);
@@ -306,12 +322,28 @@ const createCardClass = (Base) => class LitetoxCard extends Base {
       }
       this._armed = false;
       clearTimeout(this._armTimer);
-      const on = this._st("heaterSwitch")?.state === "on";
       this._pending.heater = Date.now();
-      this._hass.callService("switch", on ? "turn_off" : "turn_on", { entity_id: this._config.heaterSwitch })
-        .catch(() => { delete this._pending.heater; this._render(); });
+      const call = on
+        ? this._hass.callService("switch", "turn_off", { entity_id: this._config.heaterSwitch })
+        : this._hass.callService(PLATFORM, "start_heater",
+          { device_id: this._config.device_id, minutes: this._getMinutes() });
+      call.catch(() => { delete this._pending.heater; this._render(); });
       this._render();
     }
+  }
+
+  _minKey() {
+    return `litetox-minutes:${this._config?.device_id || ""}`;
+  }
+
+  // chosen run time: last pick on this device/browser, else card option `minutes`, else 30
+  _getMinutes() {
+    if (!this._minutes) {
+      let saved = null;
+      try { saved = Number(localStorage.getItem(this._minKey())); } catch (_) { /* private mode */ }
+      this._minutes = DURATIONS.includes(saved) ? saved : Number(this._config?.minutes) || 30;
+    }
+    return this._minutes;
   }
 
   _pill(x, y, role, icon, text, color) {
@@ -396,7 +428,11 @@ const createCardClass = (Base) => class LitetoxCard extends Base {
 
     // commands
     const armed = this._armed;
-    const heatLabel = heatBusy ? "Ждём…" : armed ? "Точно?" : heaterOn ? "Стоп" : "Запуск";
+    const runMin = this._getMinutes();
+    const heatLabel = heatBusy ? "Ждём…" : heaterOn ? "Стоп" : armed ? `Точно? ${runMin} мин` : "Запуск";
+    const durs = heaterOn ? "" : `
+        <div class="dur" title="Время работы отопителя"><ha-icon icon="mdi:timer-outline"></ha-icon>${(DURATIONS.includes(runMin) ? DURATIONS : [...DURATIONS, runMin].sort((a, b) => a - b))
+          .map((m) => `<button class="${m === runMin ? "sel" : ""}" data-act="dur" data-min="${m}">${m}</button>`).join("")}</div>`;
     const heat = c.heaterSwitch ? `
       <div class="heat" style="--c:${heaterOn ? RED : ORANGE}">
         <ha-icon icon="mdi:radiator"></ha-icon>
@@ -406,7 +442,7 @@ const createCardClass = (Base) => class LitetoxCard extends Base {
             : `${fmt(ht)} °C · статус ${ago(s("statusTs")?.state)}`}</small>
         </div>
         <button class="go${armed ? " armed" : ""}" data-act="heat" ${heatBusy || !online ? "disabled" : ""}>
-          <ha-icon icon="${heaterOn ? "mdi:stop" : "mdi:play"}"></ha-icon>${heatLabel}</button>
+          <ha-icon icon="${heaterOn ? "mdi:stop" : "mdi:play"}"></ha-icon>${heatLabel}</button>${durs}
       </div>` : "";
 
     const stTs = s("statusTs")?.state;

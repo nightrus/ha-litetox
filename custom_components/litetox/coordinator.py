@@ -89,6 +89,12 @@ class LitetoxCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             self._watchers.add(task)
             task.add_done_callback(self._watchers.discard)
 
+    async def async_heater(self, on: bool, minutes: int | None = None) -> None:
+        """START[:minutes] / STOP, showing the requested state until the module confirms."""
+        await self.async_send((f"START:{minutes}" if minutes else "START") if on else "STOP")
+        self.heater_pending = (on, time.monotonic())
+        self.async_update_listeners()
+
     async def _watch(self, cmd_id: int) -> None:
         """Refresh as soon as the module answers instead of waiting for the next poll."""
         deadline = time.monotonic() + COMMAND_TIMEOUT
