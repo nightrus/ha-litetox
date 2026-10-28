@@ -1,4 +1,4 @@
-"""Heater and OUT output switches."""
+"""Heater, OUT output and GPS tracking switches."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ async def async_setup_entry(
     async_add_entities: AddConfigEntryEntitiesCallback,
 ) -> None:
     coord = entry.runtime_data
-    async_add_entities([HeaterSwitch(coord), OutputSwitch(coord)])
+    async_add_entities([HeaterSwitch(coord), OutputSwitch(coord), TrackingSwitch(coord)])
 
 
 class HeaterSwitch(LitetoxEntity, SwitchEntity):
@@ -63,3 +63,27 @@ class OutputSwitch(LitetoxEntity, SwitchEntity):
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         await self.coordinator.async_send("DEACTIVATE")
+
+
+class TrackingSwitch(LitetoxEntity, SwitchEntity):
+    """GPS tracking (TRACKING1/TRACKING0). The module doesn't report the mode, so the
+    proxy remembers the last command sent; incoming positions also mean it is on."""
+
+    _attr_icon = "mdi:map-marker-path"
+
+    def __init__(self, coordinator) -> None:
+        super().__init__(coordinator, "tracking")
+
+    @property
+    def is_on(self) -> bool | None:
+        return self.d.get("tracking")
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        return {"updated": self.d.get("tracking_ts")}
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await self.coordinator.async_send("TRACKING1")
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self.coordinator.async_send("TRACKING0")

@@ -1,6 +1,6 @@
 /* Litetox card — bundled with the litetox integration (ALTOX heater/tracker). */
 
-const CARD_VERSION = "1.0.8";
+const CARD_VERSION = "1.0.9";
 const PLATFORM = "litetox";
 // role -> [domain, translation_key] of this integration's entities
 const ROLES = {
@@ -19,9 +19,11 @@ const ROLES = {
   lastSeen: ["sensor", "last_seen"],
   satellites: ["sensor", "satellites"],
   odometer: ["sensor", "odometer_km"],
+  speed: ["sensor", "speed"],
   statusTs: ["sensor", "heater_ts"],
   heaterSwitch: ["switch", "heater_switch"],
   output: ["switch", "output"],
+  tracking: ["switch", "tracking"],
   btnStatus: ["button", "request_status"],
   btnBalance: ["button", "request_balance"],
   btnDiag: ["button", "request_diag"],
@@ -197,14 +199,15 @@ const STYLE = `
   .run ha-icon { --mdc-icon-size: 18px; }
   .run[disabled] { cursor: default; }
   .busy .run ha-icon { animation: spin 1s linear infinite; }
-  .erase {
+  .xbtn {
     font: inherit; font-size: 12.5px; font-weight: 700; margin-top: 6px; padding: 5px 8px; border: 0;
-    border-radius: 10px; color: #fff; background: #f44336; cursor: pointer;
+    border-radius: 10px; color: #fff; background: var(--b); cursor: pointer;
     display: inline-flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
   }
-  .erase ha-icon { --mdc-icon-size: 16px; }
-  .erase[disabled] { opacity: .55; cursor: default; }
-  .erase.busy ha-icon { animation: spin 1s linear infinite; }
+  .xbtn ha-icon { --mdc-icon-size: 16px; flex: none; }
+  .xbtn[disabled] { opacity: .55; cursor: default; }
+  .xbtn.busy ha-icon { animation: spin 1s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .foot {
     display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; margin-top: 12px; padding-top: 10px;
@@ -278,6 +281,7 @@ const createCardClass = (Base) => class LitetoxCard extends Base {
       case "balance": return s("balance")?.attributes?.updated;
       case "diag":
       case "erase": return s("webasto")?.attributes?.updated;
+      case "track": return s("tracking")?.attributes?.updated;
       case "cells": return s("cell")?.attributes?.updated;
       case "heater": return s("statusTs")?.state;
       default: return null;
@@ -302,6 +306,11 @@ const createCardClass = (Base) => class LitetoxCard extends Base {
       this._pending[cmd] = Date.now();
       this._hass.callService("button", "press", { entity_id: btn })
         .catch(() => { delete this._pending[cmd]; this._render(); });
+    } else if (cmd === "track") {
+      this._pending.track = Date.now();
+      const on = this._st("tracking")?.state === "on";
+      this._hass.callService("switch", on ? "turn_off" : "turn_on", { entity_id: c.tracking })
+        .catch(() => { delete this._pending.track; this._render(); });
     } else if (cmd === "out") {
       const on = this._st("output")?.state === "on";
       this._hass.callService("switch", on ? "turn_off" : "turn_on", { entity_id: c.output });
@@ -466,6 +475,15 @@ const createCardClass = (Base) => class LitetoxCard extends Base {
 
     const sat = num(s("satellites"));
     const odo = num(s("odometer"));
+    const spd = num(s("speed"));
+    const trk = s("tracking");
+    const trkOn = trk?.state === "on";
+    const trkKnown = ok(trk);
+    const trkBusy = this._isPending("track");
+    const trkBtn = c.tracking ? `<button class="xbtn${trkBusy ? " busy" : ""}" style="--b:${trkOn ? GREY : GREEN}"
+        data-act="run" data-cmd="track" title="${trkOn ? "Выключить" : "Включить"} трекинг (команда ${trkOn ? "TRACKING0" : "TRACKING1"})" ${trkBusy || !online ? "disabled" : ""}>
+        <ha-icon icon="${trkBusy ? "mdi:loading" : trkOn ? "mdi:map-marker-off" : "mdi:map-marker-path"}"></ha-icon>${
+        trkBusy ? "Ждём…" : trkOn ? "Выключить" : "Включить"}</button>` : "";
 
     const cmds = [
       this._cmd("status", c.btnStatus, c.statusTs || c.btnStatus, "mdi:refresh", "Статус",
@@ -477,7 +495,7 @@ const createCardClass = (Base) => class LitetoxCard extends Base {
         diagErr && diag.attributes?.description ? diag.attributes.description : `проверено ${ago(diag?.attributes?.updated)}`, !diagKnown ? GREY : diagErr ? RED : GREEN,
         c.btnErase ? (() => {
           const erasing = this._isPending("erase");
-          return `<button class="erase${erasing ? " busy" : ""}" data-act="run" data-cmd="erase"
+          return `<button class="xbtn${erasing ? " busy" : ""}" style="--b:${RED}" data-act="run" data-cmd="erase"
             title="Стереть память ошибок Webasto (команда erase)" ${erasing || this._isPending("diag") ? "disabled" : ""}>
             <ha-icon icon="${erasing ? "mdi:loading" : "mdi:eraser"}"></ha-icon>${erasing ? "Стираем…" : "Стереть ошибки"}</button>`;
         })() : ""),
@@ -485,9 +503,11 @@ const createCardClass = (Base) => class LitetoxCard extends Base {
         ok(cell) ? esc(cell.state) : "—", `запрошены ${ago(cell?.attributes?.updated)}`, BLUE),
       this._cmd("sat", null, c.satellites, sat ? "mdi:satellite-variant" : "mdi:crosshairs-off", "Спутники GPS",
         sat === null ? "—" : `${sat}<small> ${sat >= 6 ? "· точно" : sat >= 3 ? "· слабо" : "· нет фикса"}</small>`,
-        `обновлено ${ago(stTs)}`, sat === null ? GREY : sat >= 6 ? GREEN : sat >= 3 ? YELLOW : RED),
+        spd === null ? "скорость —" : `${fmt(spd)} км/ч · ${spd > 2 ? "едет" : "стоит"}`,
+        sat === null ? GREY : sat >= 6 ? GREEN : sat >= 3 ? YELLOW : RED),
       this._cmd("odo", null, c.odometer, "mdi:counter", "Пробег",
-        `${fmt(odo, 1)}<small> км</small>`, "по GPS-трекингу", BLUE),
+        `${fmt(odo, 1)}<small> км</small>`,
+        !trkKnown ? "трекинг: нет данных" : trkOn ? "трекинг включён" : "трекинг выключен", BLUE, trkBtn),
       out ? this._cmd("out", c.output, c.output, "mdi:electric-switch", "Выход OUT",
         outOn ? "включён" : "выключен", "нажмите ▶ для переключения", outOn ? GREEN : GREY) : "",
     ].filter(Boolean).join("");

@@ -141,6 +141,9 @@
       "heater_switch": {
         "name": "Heater"
       },
+      "tracking": {
+        "name": "GPS tracking"
+      },
       "output": {
         "name": "Output OUT"
       }

@@ -141,6 +141,9 @@
       "heater_switch": {
         "name": "Отопитель"
       },
+      "tracking": {
+        "name": "Трекинг GPS"
+      },
       "output": {
         "name": "Выход OUT"
       }
