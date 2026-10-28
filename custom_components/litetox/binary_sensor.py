@@ -59,8 +59,10 @@ BINARY_SENSORS: tuple[LitetoxBinaryDescription, ...] = (
         device_class=BinarySensorDeviceClass.PROBLEM,
         # unknown until the first cmd_READ reply (sent only on demand)
         value=lambda d: bool(d.get("webasto_error")) if d.get("webasto_diag_ts") else None,
-        attrs=lambda d: {"error_code": d.get("webasto_error"), "report": d.get("webasto_diag_raw"),
-                         "updated": d.get("webasto_diag_ts")},
+        attrs=lambda d: {"error_code": d.get("webasto_error"),
+                         "description": d.get("webasto_error_text"),
+                         "advice": d.get("webasto_error_advice"),
+                         "report": d.get("webasto_diag_raw"), "updated": d.get("webasto_diag_ts")},
     ),
 )
 

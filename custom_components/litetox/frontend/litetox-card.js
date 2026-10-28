@@ -1,6 +1,6 @@
 /* Litetox card — bundled with the litetox integration (ALTOX heater/tracker). */
 
-const CARD_VERSION = "1.0.7";
+const CARD_VERSION = "1.0.8";
 const PLATFORM = "litetox";
 // role -> [domain, translation_key] of this integration's entities
 const ROLES = {
@@ -474,7 +474,7 @@ const createCardClass = (Base) => class LitetoxCard extends Base {
         `${fmt(bal, 2)}<small> ₽</small>`, `запрошен ${ago(balSt?.attributes?.updated)}`, balColor),
       this._cmd("diag", c.btnDiag, c.webasto || c.btnDiag, "mdi:car-wrench", "Диагностика Webasto",
         !diagKnown ? "—" : diagErr ? `код ${esc(diag.attributes?.error_code ?? "?")}` : "нет ошибок",
-        `проверено ${ago(diag?.attributes?.updated)}`, !diagKnown ? GREY : diagErr ? RED : GREEN,
+        diagErr && diag.attributes?.description ? diag.attributes.description : `проверено ${ago(diag?.attributes?.updated)}`, !diagKnown ? GREY : diagErr ? RED : GREEN,
         c.btnErase ? (() => {
           const erasing = this._isPending("erase");
           return `<button class="erase${erasing ? " busy" : ""}" data-act="run" data-cmd="erase"
