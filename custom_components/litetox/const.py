@@ -1,7 +1,7 @@
 """Constants for Litetox Proxy."""
 
 DOMAIN = "litetox"
-VERSION = "0.4.4"
+VERSION = "0.4.5"
 CARD_URL = "/litetox/litetox-card.js"
 
 CONF_IMEI = "imei"

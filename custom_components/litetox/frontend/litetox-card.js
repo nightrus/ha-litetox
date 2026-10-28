@@ -1,6 +1,6 @@
 /* Litetox card — bundled with the litetox integration (ALTOX heater/tracker). */
 
-const CARD_VERSION = "1.0.4";
+const CARD_VERSION = "1.0.5";
 const PLATFORM = "litetox";
 // role -> [domain, translation_key] of this integration's entities
 const ROLES = {
@@ -128,7 +128,7 @@ const STYLE = `
   .car.heating .glow { opacity: 1; animation: breathe 2.4s ease-in-out infinite; }
   @keyframes breathe { 50% { opacity: .55; } }
   .pill {
-    position: absolute; transform: translate(-50%, -50%);
+    position: absolute; transform: translate(var(--tx, -50%), -50%);
     display: inline-flex; align-items: center; gap: 4.4px; white-space: nowrap;
     padding: 2px 10px 2px 7px; border-radius: 13px; background: rgba(0,0,0,.55);
     color: #fff; font-size: 14.3px; font-weight: 600; cursor: pointer;
@@ -317,7 +317,9 @@ const createCardClass = (Base) => class LitetoxCard extends Base {
   _pill(x, y, role, icon, text, color) {
     const st = this._st(role);
     if (!st) return "";
-    return `<span class="pill" style="left:${x}%;top:${y}%;--c:${color}" data-act="more" data-entity="${esc(st.entity_id)}">
+    // anchored to the nearer edge so wider text grows inward, not off the card
+    const pos = x < 50 ? `left:${x}%;--tx:0` : `left:${x}%;--tx:-100%`;
+    return `<span class="pill" style="${pos};top:${y}%;--c:${color}" data-act="more" data-entity="${esc(st.entity_id)}">
       <ha-icon icon="${icon}"></ha-icon>${text}</span>`;
   }
 
@@ -380,13 +382,13 @@ const createCardClass = (Base) => class LitetoxCard extends Base {
       <div class="car${heaterOn ? " heating" : ""}">
         ${img}
         <div class="glow"></div>
-        ${this._pill(13, 8, "online", online ? "mdi:cloud-check-outline" : "mdi:cloud-off-outline",
+        ${this._pill(3, 8, "online", online ? "mdi:cloud-check-outline" : "mdi:cloud-off-outline",
           online ? "онлайн" : "офлайн", online ? GREEN : RED)}
-        ${this._pill(13, 19, "gsm", gsmIcon, gsm === null ? "—" : `${gsm}/31`, gsmColor)}
-        ${this._pill(87, 8, "voltage", "mdi:car-battery", `${fmt(v, 1)} В`, vColor)}
-        ${this._pill(87, 19, "balance", "mdi:sim", `${fmt(bal, 0)} ₽`, balColor)}
-        ${this._pill(13, 92, "heaterTemp", "mdi:radiator", `${fmt(ht)} °C`, ht !== null && ht > 40 ? ORANGE : BLUE)}
-        ${this._pill(87, 92, "cabin", "mdi:car-seat-heater", `${fmt(cab)} °C`, cab !== null && cab < 5 ? BLUE : AMBER)}
+        ${this._pill(3, 19, "gsm", gsmIcon, gsm === null ? "—" : `${gsm}/31`, gsmColor)}
+        ${this._pill(97, 8, "voltage", "mdi:car-battery", `${fmt(v, 1)} В`, vColor)}
+        ${this._pill(97, 19, "balance", "mdi:sim", `${fmt(bal, 0)} ₽`, balColor)}
+        ${this._pill(3, 92, "heaterTemp", "mdi:radiator", `${fmt(ht)} °C`, ht !== null && ht > 40 ? ORANGE : BLUE)}
+        ${this._pill(97, 92, "cabin", "mdi:car-seat-heater", `${fmt(cab)} °C`, cab !== null && cab < 5 ? BLUE : AMBER)}
         <div class="center" style="--c:${heaterOn ? ORANGE : GREY}" data-act="more" data-entity="${esc(c.heater || c.heaterSwitch)}">
           <ha-icon icon="${heaterOn ? "mdi:fire" : "mdi:fire-off"}"></ha-icon>${centerText}
         </div>
