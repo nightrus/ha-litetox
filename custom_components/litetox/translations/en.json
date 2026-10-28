@@ -155,6 +155,9 @@
       "request_cells": {
         "name": "Request GSM cells"
       },
+      "erase_diag": {
+        "name": "Erase Webasto errors"
+      },
       "request_diag": {
         "name": "Webasto diagnostics"
       }

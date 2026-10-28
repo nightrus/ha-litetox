@@ -1,4 +1,4 @@
-"""Request buttons: status, balance, Webasto diagnostics, GSM cells."""
+"""Request buttons: status, balance, Webasto diagnostics and error erase, GSM cells."""
 
 from __future__ import annotations
 
@@ -21,6 +21,8 @@ BUTTONS: tuple[LitetoxButtonDescription, ...] = (
     LitetoxButtonDescription(key="request_status", command="STATUS", icon="mdi:refresh"),
     LitetoxButtonDescription(key="request_balance", command="ussd", icon="mdi:cash-sync"),
     LitetoxButtonDescription(key="request_diag", command="READ", icon="mdi:car-wrench"),
+    # clears the heater's fault memory; sent even when READ shows no errors
+    LitetoxButtonDescription(key="erase_diag", command="erase", icon="mdi:eraser"),
     LitetoxButtonDescription(
         key="request_cells", command="gsminfo", icon="mdi:radio-tower",
         entity_registry_enabled_default=False,

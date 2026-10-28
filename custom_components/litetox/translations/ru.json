@@ -155,6 +155,9 @@
       "request_cells": {
         "name": "Запросить соты GSM"
       },
+      "erase_diag": {
+        "name": "Стереть ошибки Webasto"
+      },
       "request_diag": {
         "name": "Диагностика Webasto"
       }

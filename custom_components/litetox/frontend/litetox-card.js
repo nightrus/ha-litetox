@@ -1,6 +1,6 @@
 /* Litetox card — bundled with the litetox integration (ALTOX heater/tracker). */
 
-const CARD_VERSION = "1.0.6";
+const CARD_VERSION = "1.0.7";
 const PLATFORM = "litetox";
 // role -> [domain, translation_key] of this integration's entities
 const ROLES = {
@@ -25,6 +25,7 @@ const ROLES = {
   btnStatus: ["button", "request_status"],
   btnBalance: ["button", "request_balance"],
   btnDiag: ["button", "request_diag"],
+  btnErase: ["button", "erase_diag"],
   btnCells: ["button", "request_cells"],
 };
 const DURATIONS = [10, 20, 30, 45, 60]; // START:N, the service accepts 10–120 min
@@ -196,6 +197,14 @@ const STYLE = `
   .run ha-icon { --mdc-icon-size: 18px; }
   .run[disabled] { cursor: default; }
   .busy .run ha-icon { animation: spin 1s linear infinite; }
+  .erase {
+    font: inherit; font-size: 12.5px; font-weight: 700; margin-top: 6px; padding: 5px 8px; border: 0;
+    border-radius: 10px; color: #fff; background: #f44336; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 4px; white-space: nowrap;
+  }
+  .erase ha-icon { --mdc-icon-size: 16px; }
+  .erase[disabled] { opacity: .55; cursor: default; }
+  .erase.busy ha-icon { animation: spin 1s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .foot {
     display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; margin-top: 12px; padding-top: 10px;
@@ -267,7 +276,8 @@ const createCardClass = (Base) => class LitetoxCard extends Base {
     switch (cmd) {
       case "status": return s("statusTs")?.state;
       case "balance": return s("balance")?.attributes?.updated;
-      case "diag": return s("webasto")?.attributes?.updated;
+      case "diag":
+      case "erase": return s("webasto")?.attributes?.updated;
       case "cells": return s("cell")?.attributes?.updated;
       case "heater": return s("statusTs")?.state;
       default: return null;
@@ -287,7 +297,7 @@ const createCardClass = (Base) => class LitetoxCard extends Base {
 
   _press(cmd) {
     const c = this._config;
-    const btn = { status: c.btnStatus, balance: c.btnBalance, diag: c.btnDiag, cells: c.btnCells }[cmd];
+    const btn = { status: c.btnStatus, balance: c.btnBalance, diag: c.btnDiag, erase: c.btnErase, cells: c.btnCells }[cmd];
     if (btn) {
       this._pending[cmd] = Date.now();
       this._hass.callService("button", "press", { entity_id: btn })
@@ -355,15 +365,15 @@ const createCardClass = (Base) => class LitetoxCard extends Base {
       <ha-icon icon="${icon}"></ha-icon>${text}</span>`;
   }
 
-  _cmd(cmd, role, entity, icon, title, value, when, color) {
+  _cmd(cmd, role, entity, icon, title, value, when, color, extra = "") {
     if (!entity) return "";
-    const busy = this._isPending(cmd);
+    const busy = this._isPending(cmd) || (cmd === "diag" && this._isPending("erase"));
     return `<div class="cmd${busy ? " busy" : ""}" style="--c:${color}" data-act="more" data-entity="${esc(entity)}">
       <div class="h"><ha-icon icon="${icon}"></ha-icon>${title}</div>
       <div class="v">${value}</div>
       <div class="w">${busy ? "ждём ответ модуля…" : esc(when)}</div>
       ${role ? `<button class="run" data-act="run" data-cmd="${cmd}" title="Отправить команду" ${busy ? "disabled" : ""}>
-        <ha-icon icon="${busy ? "mdi:loading" : "mdi:send"}"></ha-icon></button>` : ""}
+        <ha-icon icon="${busy ? "mdi:loading" : "mdi:send"}"></ha-icon></button>` : ""}${extra}
     </div>`;
   }
 
@@ -464,7 +474,13 @@ const createCardClass = (Base) => class LitetoxCard extends Base {
         `${fmt(bal, 2)}<small> ₽</small>`, `запрошен ${ago(balSt?.attributes?.updated)}`, balColor),
       this._cmd("diag", c.btnDiag, c.webasto || c.btnDiag, "mdi:car-wrench", "Диагностика Webasto",
         !diagKnown ? "—" : diagErr ? `код ${esc(diag.attributes?.error_code ?? "?")}` : "нет ошибок",
-        `проверено ${ago(diag?.attributes?.updated)}`, !diagKnown ? GREY : diagErr ? RED : GREEN),
+        `проверено ${ago(diag?.attributes?.updated)}`, !diagKnown ? GREY : diagErr ? RED : GREEN,
+        c.btnErase ? (() => {
+          const erasing = this._isPending("erase");
+          return `<button class="erase${erasing ? " busy" : ""}" data-act="run" data-cmd="erase"
+            title="Стереть память ошибок Webasto (команда erase)" ${erasing || this._isPending("diag") ? "disabled" : ""}>
+            <ha-icon icon="${erasing ? "mdi:loading" : "mdi:eraser"}"></ha-icon>${erasing ? "Стираем…" : "Стереть ошибки"}</button>`;
+        })() : ""),
       this._cmd("cells", c.btnCells, c.cell || c.btnCells, "mdi:radio-tower", "Соты GSM",
         ok(cell) ? esc(cell.state) : "—", `запрошены ${ago(cell?.attributes?.updated)}`, BLUE),
       this._cmd("sat", null, c.satellites, sat ? "mdi:satellite-variant" : "mdi:crosshairs-off", "Спутники GPS",
