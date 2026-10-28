@@ -1,6 +1,6 @@
 /* Litetox card — bundled with the litetox integration (ALTOX heater/tracker). */
 
-const CARD_VERSION = "1.0.3";
+const CARD_VERSION = "1.0.4";
 const PLATFORM = "litetox";
 // role -> [domain, translation_key] of this integration's entities
 const ROLES = {
@@ -129,12 +129,12 @@ const STYLE = `
   @keyframes breathe { 50% { opacity: .55; } }
   .pill {
     position: absolute; transform: translate(-50%, -50%);
-    display: inline-flex; align-items: center; gap: 4px; white-space: nowrap;
-    padding: 2px 9px 2px 6px; border-radius: 12px; background: rgba(0,0,0,.55);
-    color: #fff; font-size: 13px; font-weight: 600; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 4.4px; white-space: nowrap;
+    padding: 2px 10px 2px 7px; border-radius: 13px; background: rgba(0,0,0,.55);
+    color: #fff; font-size: 14.3px; font-weight: 600; cursor: pointer;
     backdrop-filter: blur(2px);
   }
-  .pill ha-icon { --mdc-icon-size: 16px; color: var(--c, #fff); }
+  .pill ha-icon { --mdc-icon-size: 17.6px; color: var(--c, #fff); }
   .center {
     position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
     display: flex; flex-direction: column; align-items: center; gap: 2px;
