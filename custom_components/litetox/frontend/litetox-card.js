@@ -1,6 +1,6 @@
 /* Litetox card — bundled with the litetox integration (ALTOX heater/tracker). */
 
-const CARD_VERSION = "1.0.9";
+const CARD_VERSION = "1.0.10";
 const PLATFORM = "litetox";
 // role -> [domain, translation_key] of this integration's entities
 const ROLES = {
@@ -281,7 +281,6 @@ const createCardClass = (Base) => class LitetoxCard extends Base {
       case "balance": return s("balance")?.attributes?.updated;
       case "diag":
       case "erase": return s("webasto")?.attributes?.updated;
-      case "track": return s("tracking")?.attributes?.updated;
       case "cells": return s("cell")?.attributes?.updated;
       case "heater": return s("statusTs")?.state;
       default: return null;
@@ -292,7 +291,9 @@ const createCardClass = (Base) => class LitetoxCard extends Base {
     const at = this._pending[cmd];
     if (!at) return false;
     const ts = new Date(this._resultTs(cmd) || 0).getTime();
-    if (ts > at || Date.now() - at > PENDING_MS) {
+    // tracking: the proxy stamps the switch in whole seconds right on send, so wait for the state instead
+    const done = cmd === "track" ? this._st("tracking")?.state === (this._trackWant ? "on" : "off") : ts > at;
+    if (done || Date.now() - at > PENDING_MS) {
       delete this._pending[cmd];
       return false;
     }
@@ -309,6 +310,7 @@ const createCardClass = (Base) => class LitetoxCard extends Base {
     } else if (cmd === "track") {
       this._pending.track = Date.now();
       const on = this._st("tracking")?.state === "on";
+      this._trackWant = !on;
       this._hass.callService("switch", on ? "turn_off" : "turn_on", { entity_id: c.tracking })
         .catch(() => { delete this._pending.track; this._render(); });
     } else if (cmd === "out") {
